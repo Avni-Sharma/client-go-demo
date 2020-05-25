@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -44,6 +45,11 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	ns := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "avni"}}
+	res, err := clientset.CoreV1().Namespaces().Create(ns)
+	fmt.Printf("Created namespace %q\n", res.GetObjectMeta().GetName())
+
 	for {
 		pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
 		if err != nil {
@@ -70,6 +76,7 @@ func main() {
 
 		time.Sleep(10 * time.Second)
 	}
+
 }
 
 func homeDir() string {
