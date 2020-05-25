@@ -23,6 +23,8 @@ import (
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
 )
 
+var namesp = "avni5"
+
 func main() {
 	// var kubeconfig *string
 	home := homeDir()
@@ -45,11 +47,39 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	ns := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "avni"}}
+	// #######################################################################
+	ns := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namesp}}
 	res, err := clientset.CoreV1().Namespaces().Create(ns)
 	fmt.Printf("Created namespace %q\n", res.GetObjectMeta().GetName())
 
+	// ##################################################################
+	configMapData := make(map[string]string, 0)
+	uiProperties := `
+color.good=purple
+color.bad=yellow
+allow.textmode=true
+`
+	configMapData["uiProps"] = uiProperties
+	cmClient := clientset.CoreV1().ConfigMaps(namesp)
+
+	cm := &v1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
+		},
+		Data: configMapData,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ui-data",
+			Namespace: namesp,
+		},
+	}
+
+	result, err := cmClient.Create(cm)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Created config Map %q.\n", result.GetObjectMeta().GetName())
+	// ####################################################################
 	for {
 		pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
 		if err != nil {
