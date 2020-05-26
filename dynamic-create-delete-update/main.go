@@ -104,7 +104,7 @@ func main() {
 	prompt()
 	fmt.Println("Updating deployment...")
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		result, err := clientset.Resource(deploymentRes).Namespace(namespace).Get("demo-deployment", metav1.GetOptions{})
+		result, err := clientset.Resource(deploymentRes).Namespace(namespace).Get(dpl, metav1.GetOptions{})
 		if err != nil {
 			panic(fmt.Errorf("failed to get latest version of deployment %v", err))
 		}
