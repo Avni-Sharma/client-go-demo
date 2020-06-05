@@ -111,6 +111,22 @@ func main() {
 		if err := unstructured.SetNestedField(result.Object, int64(1), "spec", "replicas"); err != nil {
 			panic(fmt.Errorf("failed to set replica value: %v", err))
 		}
+
+		// extract containers with NestedSlice
+		containers, found, err := unstructured.NestedSlice(result.Object, "spec", "template", "spec", "containers")
+		if err != nil || !found || containers == nil {
+			panic(fmt.Errorf("deployment containers not found or error in spec: %v", err))
+		}
+
+		// update container[0] image
+		if err := unstructured.SetNestedField(containers[0].(map[string]interface{}), "baby-yoda", "name"); err != nil {
+			panic(err)
+		}
+
+		if err := unstructured.SetNestedField(result.Object, containers, "spec", "template", "spec", "containers"); err != nil {
+			panic(err)
+		}
+
 		_, updateErr := clientset.Resource(deploymentRes).Namespace(namespace).Update(result, metav1.UpdateOptions{})
 		return updateErr
 	})
